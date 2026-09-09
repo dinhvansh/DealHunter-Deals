@@ -26,6 +26,9 @@ def build_provider() -> ShopeeProvider:
         base_url=settings.shopee_base_url,
         transport_mode=settings.shopee_transport,
         timeout=settings.shopee_timeout_seconds,
+        chrome_profile_dir=settings.chrome_profile_dir,
+        chrome_headless=settings.chrome_headless,
+        chrome_executable_path=settings.chrome_executable_path,
     )
 
 
