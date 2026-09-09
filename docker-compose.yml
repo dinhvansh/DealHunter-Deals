@@ -6,11 +6,28 @@ services:
       - "8000:8000"
     volumes:
       - dealhunter_chrome:/data/chrome-profile
+      - dealhunter_secrets:/secrets
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_started
+
+  shopee-browser-login:
+    profiles: ["browser-login"]
+    build:
+      context: .
+      dockerfile: Dockerfile.browser
+    environment:
+      VNC_PASSWORD: ${DEALHUNTER_VNC_PASSWORD:-change-me-now}
+      CHROME_PROFILE_DIR: /data/chrome-profile
+      START_URL: https://shopee.vn
+    ports:
+      - "${DEALHUNTER_BROWSER_LOGIN_PORT:-6080}:6080"
+    volumes:
+      - dealhunter_chrome:/data/chrome-profile
+    shm_size: "1gb"
+
   postgres:
     image: postgres:16-alpine
     environment:
@@ -26,10 +43,13 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+
 volumes:
   dealhunter_pg:
   dealhunter_chrome:
+  dealhunter_secrets:
