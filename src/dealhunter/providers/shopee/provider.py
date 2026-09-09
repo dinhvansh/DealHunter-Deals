@@ -2,7 +2,7 @@ from dealhunter.providers.base import ListingDetail, MarketplaceProvider, Search
 from dealhunter.providers.errors import ProviderError
 
 from .parser import parse_listing, parse_search
-from .transport import HttpJsonTransport, JsonTransport, PlaywrightJsonTransport
+from .transport import ChromeJsonTransport, HttpJsonTransport, JsonTransport
 from .url_parser import parse_shopee_ids
 
 
@@ -15,12 +15,21 @@ class ShopeeProvider(MarketplaceProvider):
         transport: JsonTransport | None = None,
         transport_mode: str = "http",
         timeout: float = 30.0,
+        chrome_profile_dir: str = "./data/chrome-profile",
+        chrome_headless: bool = True,
+        chrome_executable_path: str | None = None,
     ):
         self.base_url = base_url.rstrip("/")
         if transport is not None:
             self.transport = transport
-        elif transport_mode == "playwright":
-            self.transport = PlaywrightJsonTransport(self.base_url, timeout=timeout)
+        elif transport_mode in {"chrome", "playwright"}:
+            self.transport = ChromeJsonTransport(
+                self.base_url,
+                timeout=timeout,
+                profile_dir=chrome_profile_dir,
+                headless=chrome_headless,
+                executable_path=chrome_executable_path,
+            )
         else:
             self.transport = HttpJsonTransport(timeout=timeout)
 

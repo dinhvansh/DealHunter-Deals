@@ -22,25 +22,33 @@ cp .env.example .env
 pip install -e '.[dev]'
 ```
 
-The default transport is HTTP. If Shopee challenges or blocks the HTTP transport, use Playwright:
+Browser-backed collection uses branded **Google Chrome Stable**, controlled by Playwright with a persistent profile. It does not use Playwright's bundled Chromium.
+
+For local/host execution, install Google Chrome Stable. If Playwright manages the branded browser installation:
 
 ```bash
-playwright install chromium
+playwright install --with-deps chrome
 ```
+
+For Docker Compose, the supplied image installs Google Chrome Stable and persists the browser profile at `/data/chrome-profile`.
+
+> The supplied Chrome Docker image targets amd64/x86_64 Linux hosts. Do not assume it will work on ARM64 VPS hosts.
 
 ## 2. Collect a sample
 
 Start with 10 listings:
 
 ```bash
-dealhunter live-sample "ssd 2tb" --listings 10
+dealhunter live-sample "ssd 2tb" --listings 10 --transport chrome
 ```
 
-Or force browser transport:
+Direct HTTP is still available for lightweight public collection:
 
 ```bash
-dealhunter live-sample "ssd 2tb" --listings 10 --transport playwright
+dealhunter live-sample "ssd 2tb" --listings 10 --transport http
 ```
+
+The legacy `--transport playwright` value is accepted for backward compatibility but maps to the Google Chrome Stable transport.
 
 The command writes a UTF-8 CSV under `validation/` unless `--output` is supplied.
 
@@ -152,6 +160,18 @@ If the gate fails, classify failures before changing scoring or scaling:
 - listing parser structure changed
 - blocked/challenged provider response
 
+## Persistent Chrome profile
+
+Set these variables when using Chrome:
+
+```env
+DEALHUNTER_CHROME_PROFILE_DIR=/data/chrome-profile
+DEALHUNTER_CHROME_HEADLESS=true
+DEALHUNTER_CHROME_EXECUTABLE_PATH=
+```
+
+The profile is intentionally persistent so ordinary cookies/session state can survive restarts and later support authorized account verification. Do not run multiple Chrome instances against the same profile directory at the same time.
+
 ## Safety and operating rule
 
-This tool uses public discovery only. It does not log in, claim vouchers, bypass CAPTCHA, or place orders. If a challenge is encountered, record the provider failure and stop/reduce traffic rather than bypassing the challenge.
+This tool does not bypass CAPTCHA, marketplace access controls, or automate checkout. If a challenge is encountered, record the provider failure and stop/reduce traffic rather than bypassing the challenge.

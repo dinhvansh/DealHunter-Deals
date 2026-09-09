@@ -1,8 +1,9 @@
 import json
+from pathlib import Path
 from typing import Any, Protocol
 
 import httpx
-from playwright.async_api import Browser, Playwright, async_playwright
+from playwright.async_api import BrowserContext, Playwright, async_playwright
 
 from dealhunter.providers.errors import ProviderBlockedError, ProviderError
 
@@ -47,23 +48,59 @@ class HttpJsonTransport:
         await self.client.aclose()
 
 
-class PlaywrightJsonTransport:
-    """Browser-backed public fetch transport; it does not bypass CAPTCHA/login challenges."""
+class ChromeJsonTransport:
+    """Google Chrome Stable transport with a persistent browser profile.
 
-    def __init__(self, base_url: str, timeout: float = 30.0):
+    This transport uses Playwright only as the controller. Browser execution is delegated to
+    branded Google Chrome via ``channel='chrome'`` (or an explicit Chrome executable path).
+    It does not bypass CAPTCHA, login challenges, or marketplace access controls.
+    """
+
+    def __init__(
+        self,
+        base_url: str,
+        timeout: float = 30.0,
+        profile_dir: str = "./data/chrome-profile",
+        headless: bool = True,
+        executable_path: str | None = None,
+    ):
         self.base_url = base_url.rstrip("/")
         self.timeout_ms = int(timeout * 1000)
+        self.profile_dir = Path(profile_dir)
+        self.headless = headless
+        self.executable_path = executable_path
         self._pw: Playwright | None = None
-        self._browser: Browser | None = None
+        self._context: BrowserContext | None = None
         self._page = None
 
     async def _ensure_page(self):
         if self._page:
             return self._page
+
+        self.profile_dir.mkdir(parents=True, exist_ok=True)
         self._pw = await async_playwright().start()
-        self._browser = await self._pw.chromium.launch(headless=True)
-        context = await self._browser.new_context(locale="vi-VN")
-        self._page = await context.new_page()
+
+        launch_kwargs: dict[str, Any] = {
+            "user_data_dir": str(self.profile_dir),
+            "headless": self.headless,
+            "locale": "vi-VN",
+        }
+        if self.executable_path:
+            launch_kwargs["executable_path"] = self.executable_path
+        else:
+            launch_kwargs["channel"] = "chrome"
+
+        try:
+            self._context = await self._pw.chromium.launch_persistent_context(**launch_kwargs)
+        except Exception as exc:
+            await self._pw.stop()
+            self._pw = None
+            raise ProviderError(
+                "Google Chrome Stable could not be launched. Install Chrome on an amd64/x86_64 "
+                "host or set DEALHUNTER_CHROME_EXECUTABLE_PATH."
+            ) from exc
+
+        self._page = self._context.pages[0] if self._context.pages else await self._context.new_page()
         self._page.set_default_timeout(self.timeout_ms)
         await self._page.goto(self.base_url, wait_until="domcontentloaded")
         return self._page
@@ -95,7 +132,14 @@ class PlaywrightJsonTransport:
             raise ProviderError("provider did not return JSON") from exc
 
     async def aclose(self) -> None:
-        if self._browser:
-            await self._browser.close()
+        if self._context:
+            await self._context.close()
+            self._context = None
+            self._page = None
         if self._pw:
             await self._pw.stop()
+            self._pw = None
+
+
+# Backward-compatible name. Browser-backed collection now uses Google Chrome Stable.
+PlaywrightJsonTransport = ChromeJsonTransport

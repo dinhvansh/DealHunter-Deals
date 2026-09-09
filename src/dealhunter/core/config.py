@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     shopee_max_concurrency: int = 3
     raw_evidence_retention: bool = False
 
+    chrome_profile_dir: str = "./data/chrome-profile"
+    chrome_headless: bool = True
+    chrome_executable_path: str | None = None
+
     telegram_bot_token: str | None = None
     telegram_chat_id: str | None = None
 

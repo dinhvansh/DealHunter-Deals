@@ -4,6 +4,8 @@ services:
     env_file: .env
     ports:
       - "8000:8000"
+    volumes:
+      - dealhunter_chrome:/data/chrome-profile
     depends_on:
       postgres:
         condition: service_healthy
@@ -30,3 +32,4 @@ services:
       - "6379:6379"
 volumes:
   dealhunter_pg:
+  dealhunter_chrome:
