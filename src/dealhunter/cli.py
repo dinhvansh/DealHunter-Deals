@@ -22,7 +22,7 @@ def _parser() -> argparse.ArgumentParser:
     sample.add_argument("query", nargs="?", default="ssd 2tb")
     sample.add_argument("--listings", type=int, default=10)
     sample.add_argument("--concurrency", type=int, default=3)
-    sample.add_argument("--transport", choices=["http", "playwright"], default=None)
+    sample.add_argument("--transport", choices=["http", "chrome", "playwright"], default=None)
     sample.add_argument("--output", type=Path, default=None)
 
     report = sub.add_parser("live-report", help="Calculate accuracy from a reviewed CSV")
@@ -39,6 +39,9 @@ async def _run_sample(args: argparse.Namespace) -> int:
         base_url=settings.shopee_base_url,
         transport_mode=args.transport or settings.shopee_transport,
         timeout=settings.shopee_timeout_seconds,
+        chrome_profile_dir=settings.chrome_profile_dir,
+        chrome_headless=settings.chrome_headless,
+        chrome_executable_path=settings.chrome_executable_path,
     )
     try:
         sample = await collect_live_sample(
