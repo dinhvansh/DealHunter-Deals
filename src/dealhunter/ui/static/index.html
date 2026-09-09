@@ -3,32 +3,192 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DealHunter</title>
+  <meta name="theme-color" content="#111827" />
+  <title>DealHunter — AI Deal Radar</title>
   <style>
-    :root{font-family:Inter,system-ui,-apple-system,sans-serif;color:#171717;background:#f6f7f9}*{box-sizing:border-box}body{margin:0}header{padding:18px 24px;background:#111;color:white;display:flex;justify-content:space-between;align-items:center}.wrap{max-width:1180px;margin:auto;padding:24px}.hero{display:grid;gap:12px;margin-bottom:18px}.searchbar{display:flex;gap:8px}.search{flex:1;padding:14px;border:1px solid #d7d7d7;border-radius:12px;font-size:16px}button{border:0;border-radius:10px;padding:11px 14px;font-weight:700;cursor:pointer}.primary{background:#111;color:white}.tabs{display:flex;gap:8px;flex-wrap:wrap}.tab{background:white;border:1px solid #ddd}.tab.active{background:#111;color:white}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}.card{background:white;border:1px solid #e8e8e8;border-radius:16px;padding:17px;box-shadow:0 5px 18px rgba(0,0,0,.04)}.muted{color:#707070}.score{font-size:32px;font-weight:850}.row{display:flex;justify-content:space-between;gap:12px;align-items:center}.badge{font-size:12px;padding:5px 8px;border:1px solid #ddd;border-radius:999px}.empty{padding:28px;text-align:center;background:white;border:1px dashed #ccc;border-radius:14px}.price{font-size:21px;font-weight:800}.hidden{display:none}.error{padding:12px;border:1px solid #d0d0d0;background:white;border-radius:10px;margin-bottom:12px;white-space:pre-wrap}.error b{display:block;margin-bottom:4px}
+    :root{
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:#172033;
+      background:#f3f5f9;
+      --bg:#f3f5f9;
+      --surface:#fff;
+      --surface-2:#f8fafc;
+      --text:#172033;
+      --muted:#718096;
+      --line:#e7eaf0;
+      --brand:#ff5a36;
+      --brand-2:#ff8a3d;
+      --dark:#111827;
+      --green:#0aa66b;
+      --purple:#6d5dfc;
+      --shadow:0 14px 40px rgba(19,31,56,.08);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:var(--text)}
+    button,input{font:inherit}
+    button,a{transition:.2s ease}
+    button{cursor:pointer}
+    a{text-decoration:none;color:inherit}
+    .topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-bottom:1px solid rgba(226,232,240,.85)}
+    .topbar-inner{max-width:1320px;margin:auto;height:70px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+    .brand{display:flex;align-items:center;gap:11px;font-weight:900;letter-spacing:-.4px;font-size:21px}
+    .brand-mark{width:38px;height:38px;border-radius:13px;background:linear-gradient(145deg,var(--brand),#ff9f43);display:grid;place-items:center;color:#fff;box-shadow:0 8px 20px rgba(255,90,54,.28)}
+    .brand-mark svg{width:21px;height:21px}
+    .top-links{display:flex;align-items:center;gap:8px}
+    .top-pill{padding:9px 13px;border-radius:999px;background:#f6f7fb;color:#4a5568;font-size:13px;font-weight:700;border:1px solid #edf0f5}
+    .status-dot{width:7px;height:7px;border-radius:999px;background:#10b981;display:inline-block;margin-right:6px;box-shadow:0 0 0 4px rgba(16,185,129,.1)}
+    .page{max-width:1320px;margin:auto;padding:26px 28px 50px}
+    .hero{position:relative;overflow:hidden;border-radius:28px;padding:34px;background:linear-gradient(118deg,#111827 0%,#1f2937 58%,#392c65 100%);box-shadow:0 18px 48px rgba(17,24,39,.18);color:#fff}
+    .hero:before,.hero:after{content:"";position:absolute;border-radius:999px;filter:blur(0);pointer-events:none}
+    .hero:before{width:300px;height:300px;right:-90px;top:-150px;background:radial-gradient(circle,rgba(255,113,67,.55),rgba(255,113,67,0) 70%)}
+    .hero:after{width:260px;height:260px;left:38%;bottom:-210px;background:radial-gradient(circle,rgba(109,93,252,.65),rgba(109,93,252,0) 70%)}
+    .hero-content{position:relative;z-index:2;max-width:920px}
+    .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.13);font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#f5f7fb}
+    h1{font-size:36px;line-height:1.1;letter-spacing:-1.2px;margin:16px 0 10px;max-width:740px}
+    .hero-copy{color:#cbd5e1;max-width:700px;line-height:1.65;margin:0 0 22px;font-size:15px}
+    .search-shell{display:flex;gap:10px;background:#fff;border-radius:17px;padding:8px;box-shadow:0 14px 38px rgba(0,0,0,.22);max-width:900px}
+    .search-box{flex:1;display:flex;align-items:center;gap:10px;padding:0 12px;min-width:0}
+    .search-box svg{width:21px;height:21px;color:#94a3b8;flex:0 0 auto}
+    .search-input{width:100%;border:0;outline:0;padding:11px 0;font-size:16px;color:#111827;background:transparent}
+    .search-input::placeholder{color:#94a3b8}
+    .search-btn{border:0;color:#fff;font-weight:850;padding:13px 21px;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--brand-2));box-shadow:0 8px 18px rgba(255,90,54,.28);white-space:nowrap}
+    .search-btn:hover{transform:translateY(-1px);box-shadow:0 11px 22px rgba(255,90,54,.32)}
+    .search-btn:disabled{opacity:.65;cursor:wait;transform:none}
+    .quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .quick span{font-size:12px;color:#94a3b8;margin-right:3px;align-self:center}
+    .quick button{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#e5e7eb;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:650}
+    .quick button:hover{background:rgba(255,255,255,.15)}
+    .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0}
+    .stat{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:17px 18px;display:flex;align-items:center;gap:13px;box-shadow:0 5px 18px rgba(19,31,56,.035)}
+    .stat-icon{width:43px;height:43px;border-radius:14px;display:grid;place-items:center;font-size:20px}
+    .stat.orange .stat-icon{background:#fff1eb}.stat.purple .stat-icon{background:#f0edff}.stat.green .stat-icon{background:#e9fbf4}
+    .stat strong{display:block;font-size:21px;line-height:1.1;letter-spacing:-.3px}
+    .stat small{color:var(--muted);font-size:12px;font-weight:650}
+    .workspace{display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px;align-items:start}
+    .sidebar{position:sticky;top:88px;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:10px;box-shadow:0 7px 24px rgba(19,31,56,.035)}
+    .nav-label{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#9aa5b1;font-weight:900;padding:10px 11px 7px}
+    .nav-btn{width:100%;border:0;background:transparent;border-radius:13px;padding:11px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;color:#4a5568;font-weight:750;text-align:left;margin:2px 0}
+    .nav-btn:hover{background:#f6f7fb;color:#111827}
+    .nav-btn.active{background:#111827;color:#fff;box-shadow:0 7px 16px rgba(17,24,39,.16)}
+    .nav-main{display:flex;align-items:center;gap:9px}
+    .nav-count{font-size:10px;padding:4px 7px;border-radius:999px;background:rgba(148,163,184,.16);font-weight:850}
+    .nav-btn.active .nav-count{background:rgba(255,255,255,.14)}
+    .side-card{margin-top:11px;border-radius:15px;background:linear-gradient(145deg,#fff6f1,#fff);border:1px solid #ffe3d7;padding:13px}
+    .side-card b{font-size:12px}.side-card p{font-size:11px;line-height:1.5;color:#7c6b63;margin:6px 0 0}
+    .content{min-width:0}
+    .content-head{display:flex;justify-content:space-between;align-items:end;gap:16px;margin:4px 0 14px}
+    .content-head h2{font-size:22px;letter-spacing:-.45px;margin:0 0 4px}
+    .content-head p{margin:0;color:var(--muted);font-size:13px}
+    .toolbar{display:flex;gap:8px;align-items:center}
+    .tool-chip{border:1px solid var(--line);background:#fff;color:#556070;padding:8px 11px;border-radius:11px;font-size:12px;font-weight:750}
+    .error-wrap{margin-bottom:14px}
+    .error-card{background:#fff7f4;border:1px solid #ffdacf;color:#8e3a26;border-radius:15px;padding:13px 15px;display:flex;gap:11px;align-items:flex-start;box-shadow:0 4px 14px rgba(194,65,12,.04)}
+    .error-card strong{display:block;font-size:13px;margin-bottom:3px}.error-card span{font-size:12px;line-height:1.55;white-space:pre-wrap}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:0 5px 18px rgba(19,31,56,.035);transition:.22s ease}
+    .card:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:#dfe4ec}
+    .product-visual{height:132px;background:linear-gradient(145deg,#f8fafc,#eef2f8);display:grid;place-items:center;position:relative;overflow:hidden}
+    .product-visual:after{content:"";position:absolute;width:130px;height:130px;border-radius:999px;background:rgba(255,255,255,.72);right:-28px;top:-55px}
+    .product-glyph{width:63px;height:63px;border-radius:19px;background:#fff;border:1px solid #e9edf3;display:grid;place-items:center;font-size:28px;box-shadow:0 8px 24px rgba(31,41,55,.08);z-index:2}
+    .market-badge{position:absolute;left:12px;top:12px;background:#fff;border:1px solid #e8ebf0;padding:6px 9px;border-radius:999px;font-size:10px;font-weight:900;color:#ee4d2d;z-index:3}
+    .card-body{padding:16px}
+    .title{font-size:14px;line-height:1.5;font-weight:800;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:42px}
+    .price{font-size:22px;letter-spacing:-.5px;font-weight:900;color:#f04d2f;margin:11px 0 3px}
+    .meta{font-size:11px;color:#8a96a8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .card-actions{display:flex;gap:8px;margin-top:13px}
+    .btn{border:0;border-radius:11px;padding:10px 12px;font-size:12px;font-weight:850;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+    .btn-primary{background:#111827;color:#fff;flex:1}.btn-primary:hover{background:#1f2937}
+    .btn-soft{background:#f3f5f9;color:#4b5563}.btn-soft:hover{background:#e9edf4}
+    .score-card{padding:18px}
+    .score-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .score-badge{display:inline-flex;align-items:center;gap:6px;color:#e3522e;background:#fff3ed;border:1px solid #ffe0d3;border-radius:999px;padding:6px 9px;font-size:10px;font-weight:900}
+    .time{color:#9aa5b1;font-size:10px}
+    .score-main{display:flex;align-items:center;gap:16px;margin:18px 0}
+    .score-ring{--score:75;width:76px;height:76px;border-radius:999px;background:conic-gradient(var(--brand) calc(var(--score)*1%),#eef1f5 0);display:grid;place-items:center;position:relative;flex:0 0 auto}
+    .score-ring:after{content:"";width:60px;height:60px;border-radius:999px;background:#fff;position:absolute}
+    .score-ring strong{position:relative;z-index:2;font-size:21px;letter-spacing:-.4px}
+    .score-copy h3{margin:0 0 6px;font-size:15px}.score-copy p{margin:0;color:var(--muted);font-size:11px;line-height:1.45}
+    .metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:12px 0}
+    .metric{background:#f7f8fb;border-radius:11px;padding:9px;text-align:center}.metric b{display:block;font-size:13px}.metric span{font-size:9px;color:#8d99aa;text-transform:uppercase;letter-spacing:.06em;font-weight:800}
+    .watch-card{padding:17px}.watch-head{display:flex;justify-content:space-between;gap:10px;align-items:center}.watch-mode{font-size:11px;font-weight:900;color:#6d5dfc;background:#f1efff;border-radius:999px;padding:6px 9px}.on{color:#07885a;background:#eafaf3}.watch-id{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#667085;background:#f7f8fa;border-radius:9px;padding:9px;margin:13px 0;overflow:hidden;text-overflow:ellipsis}.watch-meta{font-size:12px;color:#687386;line-height:1.65}
+    .tool-card{padding:17px}.tool-icon{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:#f1efff;color:#6d5dfc;font-size:18px;margin-bottom:12px}.tool-card h3{font-size:14px;margin:0 0 6px}.tool-card p{color:var(--muted);font-size:11px;line-height:1.6;margin:0}
+    .empty{grid-column:1/-1;background:#fff;border:1px dashed #d9dee7;border-radius:20px;padding:48px 24px;text-align:center;color:#7c889a}.empty-icon{width:54px;height:54px;border-radius:18px;background:#f4f6fa;display:grid;place-items:center;margin:0 auto 13px;font-size:23px}.empty b{display:block;color:#394456;margin-bottom:5px}.empty span{font-size:12px}
+    .loading{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.skeleton{height:274px;border-radius:20px;background:linear-gradient(100deg,#eef1f5 20%,#f8fafc 40%,#eef1f5 60%);background-size:200% 100%;animation:shine 1.1s linear infinite}@keyframes shine{to{background-position-x:-200%}}
+    .hidden{display:none!important}
+    @media(max-width:1050px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.workspace{grid-template-columns:190px minmax(0,1fr)}}
+    @media(max-width:760px){.topbar-inner{padding:0 16px}.top-links .top-pill:first-child{display:none}.page{padding:16px}.hero{padding:24px 18px;border-radius:22px}h1{font-size:29px}.search-shell{flex-direction:column}.search-btn{width:100%}.stats{grid-template-columns:1fr}.workspace{display:block}.sidebar{position:static;display:flex;gap:7px;overflow:auto;background:transparent;border:0;box-shadow:none;padding:0 0 12px}.nav-label,.side-card{display:none}.nav-btn{width:auto;flex:0 0 auto;background:#fff;border:1px solid var(--line);padding:9px 12px}.nav-btn.active{border-color:#111827}.content-head{align-items:center}.toolbar{display:none}.grid{grid-template-columns:1fr}.loading{grid-template-columns:1fr}.product-visual{height:118px}}
   </style>
 </head>
 <body>
-<header><b>DealHunter</b><span>AI Deal Radar</span></header>
-<main class="wrap">
-  <section class="hero">
-    <div class="searchbar">
-      <input id="search" class="search" placeholder="Ví dụ: SSD NVMe 2TB PCIe 4.0 dưới 2 triệu" />
-      <button class="primary" onclick="runSearch()">Tìm deal</button>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/">
+        <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M13 2 4.5 13h6L9 22l10.5-13h-6L13 2Z" fill="currentColor"/></svg></span>
+        <span>DealHunter</span>
+      </a>
+      <div class="top-links">
+        <span class="top-pill"><i class="status-dot"></i>Engine online</span>
+        <span class="top-pill">AI Deal Radar</span>
+      </div>
     </div>
-    <div class="tabs">
-      <button class="tab active" data-view="opportunities" onclick="showView('opportunities',this)">⚡ Opportunities</button>
-      <button class="tab" data-view="watchlist" onclick="showView('watchlist',this)">❤️ Watchlist</button>
-      <button class="tab" data-view="tools" onclick="showView('tools',this)">🤖 AI Tools</button>
-    </div>
-  </section>
-  <div id="error"></div>
-  <section id="opportunities" class="grid"></section>
-  <section id="watchlist" class="grid hidden"></section>
-  <section id="tools" class="grid hidden"></section>
-</main>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <div class="hero-content">
+        <span class="eyebrow">⚡ Smart Deal Discovery</span>
+        <h1>Tìm giá ngon thật. Không bị đánh lừa bởi “sale ảo”.</h1>
+        <p class="hero-copy">DealHunter quét sản phẩm, theo dõi từng biến thể và dùng lịch sử giá để lọc ra những deal thực sự đáng tiền.</p>
+        <div class="search-shell">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input id="search" class="search-input" autocomplete="off" placeholder="Ví dụ: camera hành trình 2 cam dưới 1 triệu" />
+          </div>
+          <button id="searchBtn" class="search-btn" onclick="runSearch()">Tìm deal ngon</button>
+        </div>
+        <div class="quick">
+          <span>Gợi ý:</span>
+          <button onclick="quickSearch('camera hành trình')">Camera hành trình</button>
+          <button onclick="quickSearch('SSD NVMe 2TB')">SSD 2TB</button>
+          <button onclick="quickSearch('máy khoan pin')">Máy khoan pin</button>
+          <button onclick="quickSearch('router wifi 7')">Router Wi‑Fi 7</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats">
+      <article class="stat orange"><div class="stat-icon">⚡</div><div><strong id="opportunityCount">—</strong><small>Deal opportunities</small></div></article>
+      <article class="stat purple"><div class="stat-icon">♥</div><div><strong id="watchCount">—</strong><small>Đang theo dõi</small></div></article>
+      <article class="stat green"><div class="stat-icon">✦</div><div><strong id="toolCount">—</strong><small>AI tools sẵn sàng</small></div></article>
+    </section>
+
+    <section class="workspace">
+      <aside class="sidebar">
+        <div class="nav-label">Deal Hunter</div>
+        <button class="nav-btn active" data-view="opportunities" onclick="showView('opportunities',this)"><span class="nav-main">⚡ <span>Deal Radar</span></span><span id="dealNavCount" class="nav-count">0</span></button>
+        <button class="nav-btn" data-view="watchlist" onclick="showView('watchlist',this)"><span class="nav-main">♥ <span>Watchlist</span></span><span id="watchNavCount" class="nav-count">0</span></button>
+        <button class="nav-btn" data-view="tools" onclick="showView('tools',this)"><span class="nav-main">✦ <span>AI Tools</span></span></button>
+        <div class="side-card"><b>Deal Score ≠ % giảm giá</b><p>Điểm deal ưu tiên lịch sử giá, độ tin cậy và chất lượng seller — không chạy theo số % marketing.</p></div>
+      </aside>
+
+      <div class="content">
+        <div class="content-head">
+          <div><h2 id="viewTitle">Deal Radar</h2><p id="viewSubtitle">Những cơ hội tốt nhất mà hệ thống đang nhìn thấy.</p></div>
+          <div class="toolbar"><span class="tool-chip">Shopee VN</span><span class="tool-chip">Smart ranking</span></div>
+        </div>
+        <div id="error" class="error-wrap"></div>
+        <section id="opportunities" class="grid"></section>
+        <section id="watchlist" class="grid hidden"></section>
+        <section id="tools" class="grid hidden"></section>
+      </div>
+    </section>
+  </main>
+
 <script>
 const money = n => n == null ? '—' : Number(n).toLocaleString('vi-VN')+'đ';
+const esc = value => String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]));
+const shortId = id => esc(String(id||'').slice(0,10)) + (String(id||'').length>10?'…':'');
 const clearError = () => document.getElementById('error').innerHTML='';
 const api = async (url, options={}) => {
   const r = await fetch(url, options);
@@ -39,20 +199,101 @@ const api = async (url, options={}) => {
     const detail = data && data.detail;
     const message = typeof detail === 'string' ? detail : (detail && detail.message) || text || r.statusText;
     const hint = detail && typeof detail === 'object' && detail.hint ? `\n${detail.hint}` : '';
-    throw new Error(`HTTP ${r.status}: ${message}${hint}`);
+    const err = new Error(`${message}${hint}`); err.status = r.status; throw err;
   }
   return data ?? {};
 };
-const error = e => document.getElementById('error').innerHTML=`<div class="error"><b>DealHunter gặp lỗi</b>${String(e)}</div>`;
-function dealCard(d){return `<article class="card"><div class="row"><span class="badge">Opportunity ${d.opportunity_score}</span><span class="muted">${new Date(d.computed_at).toLocaleString()}</span></div><h3>Variant ${d.variant_id.slice(0,8)}…</h3><div class="row"><div><div class="score">${d.deal_score}</div><div class="muted">Deal Score</div></div><div><b>Confidence ${d.confidence_score}%</b><br><span class="muted">Share ${d.share_score}</span></div></div><p class="muted">${Object.entries(d.components||{}).map(([k,v])=>`${k}: ${v}`).join(' · ')}</p><button onclick="addWatch('${d.variant_id}')">Theo dõi</button></article>`}
-async function loadOpportunities(){try{const data=await api('/api/v1/opportunities?limit=30&min_opportunity=0');document.getElementById('opportunities').innerHTML=data.length?data.map(dealCard).join(''):'<div class="empty">Chưa có Deal Score. Thu thập dữ liệu và chạy scoring để bắt đầu.</div>'}catch(e){error(e)}}
-async function loadWatchlist(){try{const data=await api('/api/v1/watchlist?user_id=local');document.getElementById('watchlist').innerHTML=data.length?data.map(w=>`<article class="card"><div class="row"><b>${w.mode} Watch</b><span class="badge">${w.enabled?'ON':'OFF'}</span></div><p>Variant ${w.variant_id}</p><p class="muted">Target: ${money(w.target_price)} · Deal ≥ ${w.min_deal_score??'—'}</p><button onclick="removeWatch('${w.id}')">Bỏ theo dõi</button></article>`).join(''):'<div class="empty">Watchlist đang trống.</div>'}catch(e){error(e)}}
-async function loadTools(){try{const data=await api('/api/v1/ai/tools');document.getElementById('tools').innerHTML=data.tools.map(t=>`<article class="card"><b>${t.name}</b><p class="muted">${t.description}</p></article>`).join('')}catch(e){error(e)}}
-async function runSearch(){const q=document.getElementById('search').value.trim();if(!q)return;clearError();try{const data=await api('/api/v1/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q,limit:20,collect_details:true})});clearError();document.getElementById('opportunities').innerHTML=data.results.map(r=>`<article class="card"><span class="badge">Shopee</span><h3>${r.title}</h3><div class="price">${money(r.displayed_price)}</div><p class="muted">${r.item_id} · shop ${r.shop_id}</p><a href="${r.url}" target="_blank" rel="noreferrer">Mở sản phẩm</a></article>`).join('')||'<div class="empty">Không tìm thấy kết quả.</div>';showView('opportunities',document.querySelector('[data-view=opportunities]'))}catch(e){error(e)}}
-async function addWatch(variant_id){try{await api('/api/v1/watchlist',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:'local',variant_id,mode:'NORMAL',verify_account:false})});await loadWatchlist()}catch(e){error(e)}}
-async function removeWatch(id){try{await api(`/api/v1/watchlist/${id}?user_id=local`,{method:'DELETE'});await loadWatchlist()}catch(e){error(e)}}
-function showView(id,el){['opportunities','watchlist','tools'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');if(id==='watchlist')loadWatchlist();if(id==='tools')loadTools()}
-loadOpportunities();
+const showError = e => {
+  const status = e.status ? `HTTP ${e.status}` : 'Runtime';
+  document.getElementById('error').innerHTML = `<div class="error-card"><div>⚠️</div><div><strong>${status} · DealHunter chưa lấy được dữ liệu</strong><span>${esc(e.message || e)}</span></div></div>`;
+};
+const emptyState = (icon,title,copy) => `<div class="empty"><div class="empty-icon">${icon}</div><b>${title}</b><span>${copy}</span></div>`;
+const loadingState = () => `<div class="loading"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>`;
+const glyphFor = title => { const t=String(title||'').toLowerCase(); if(t.includes('camera'))return '📷'; if(t.includes('ssd')||t.includes('ổ cứng'))return '💾'; if(t.includes('router')||t.includes('wifi'))return '📡'; if(t.includes('khoan')||t.includes('máy siết'))return '🛠️'; if(t.includes('tai nghe'))return '🎧'; return '📦'; };
+
+function productCard(r){
+  return `<article class="card">
+    <div class="product-visual"><span class="market-badge">SHOPEE</span><div class="product-glyph">${glyphFor(r.title)}</div></div>
+    <div class="card-body">
+      <h3 class="title">${esc(r.title)}</h3>
+      <div class="price">${money(r.displayed_price)}</div>
+      <div class="meta">Item ${shortId(r.item_id)} · Shop ${shortId(r.shop_id)}</div>
+      <div class="card-actions"><a class="btn btn-primary" href="${esc(r.url)}" target="_blank" rel="noreferrer">Xem trên Shopee ↗</a></div>
+    </div>
+  </article>`;
+}
+
+function dealCard(d){
+  const score = Math.max(0,Math.min(100,Number(d.deal_score)||0));
+  return `<article class="card score-card">
+    <div class="score-top"><span class="score-badge">⚡ Opportunity ${esc(d.opportunity_score)}</span><span class="time">${new Date(d.computed_at).toLocaleString('vi-VN')}</span></div>
+    <div class="score-main"><div class="score-ring" style="--score:${score}"><strong>${score}</strong></div><div class="score-copy"><h3>Variant ${shortId(d.variant_id)}</h3><p>Deal Score tổng hợp từ giá lịch sử, confidence và tín hiệu chất lượng hiện có.</p></div></div>
+    <div class="metric-row"><div class="metric"><b>${esc(d.confidence_score)}%</b><span>Confidence</span></div><div class="metric"><b>${esc(d.opportunity_score)}</b><span>Opportunity</span></div><div class="metric"><b>${esc(d.share_score)}</b><span>Share</span></div></div>
+    <div class="card-actions"><button class="btn btn-primary" onclick="addWatch('${esc(d.variant_id)}')">♥ Theo dõi deal</button></div>
+  </article>`;
+}
+
+async function loadOpportunities(){
+  const node=document.getElementById('opportunities'); node.innerHTML=loadingState();
+  try{
+    const data=await api('/api/v1/opportunities?limit=30&min_opportunity=0');
+    const count=Array.isArray(data)?data.length:0;
+    document.getElementById('opportunityCount').textContent=count;
+    document.getElementById('dealNavCount').textContent=count;
+    node.innerHTML=count?data.map(dealCard).join(''):emptyState('⚡','Chưa có deal score','Hãy chạy search và tích lũy dữ liệu giá để Deal Radar bắt đầu xếp hạng.');
+  }catch(e){node.innerHTML=emptyState('⚠️','Không tải được Deal Radar','Xem lỗi phía trên để biết nguyên nhân.');showError(e)}
+}
+
+async function loadWatchlist(){
+  const node=document.getElementById('watchlist'); node.innerHTML=loadingState();
+  try{
+    const data=await api('/api/v1/watchlist?user_id=local');
+    const count=Array.isArray(data)?data.length:0;
+    document.getElementById('watchCount').textContent=count;
+    document.getElementById('watchNavCount').textContent=count;
+    node.innerHTML=count?data.map(w=>`<article class="card watch-card"><div class="watch-head"><span class="watch-mode">${esc(w.mode)} WATCH</span><span class="watch-mode on">${w.enabled?'● ACTIVE':'OFF'}</span></div><div class="watch-id">${esc(w.variant_id)}</div><div class="watch-meta">Giá mục tiêu: <b>${money(w.target_price)}</b><br>Deal Score tối thiểu: <b>${esc(w.min_deal_score??'—')}</b></div><div class="card-actions"><button class="btn btn-soft" onclick="removeWatch('${esc(w.id)}')">Bỏ theo dõi</button></div></article>`).join(''):emptyState('♥','Watchlist đang trống','Thêm một deal vào watchlist để theo dõi giá và tín hiệu mới.');
+  }catch(e){node.innerHTML=emptyState('⚠️','Không tải được Watchlist','Xem lỗi phía trên để biết nguyên nhân.');showError(e)}
+}
+
+async function loadTools(){
+  const node=document.getElementById('tools'); node.innerHTML=loadingState();
+  try{
+    const data=await api('/api/v1/ai/tools'); const tools=data.tools||[];
+    document.getElementById('toolCount').textContent=tools.length;
+    node.innerHTML=tools.length?tools.map(t=>`<article class="card tool-card"><div class="tool-icon">✦</div><h3>${esc(t.name)}</h3><p>${esc(t.description)}</p></article>`).join(''):emptyState('✦','Chưa có AI tools','Tool catalog chưa được cấu hình.');
+  }catch(e){node.innerHTML=emptyState('⚠️','Không tải được AI Tools','Xem lỗi phía trên để biết nguyên nhân.');showError(e)}
+}
+
+async function runSearch(){
+  const q=document.getElementById('search').value.trim(); if(!q)return;
+  clearError(); showView('opportunities',document.querySelector('[data-view=opportunities]'),false);
+  const node=document.getElementById('opportunities'); const btn=document.getElementById('searchBtn');
+  node.innerHTML=loadingState(); btn.disabled=true; btn.textContent='Đang săn deal…';
+  document.getElementById('viewTitle').textContent=`Kết quả: ${q}`;
+  document.getElementById('viewSubtitle').textContent='Đang quét Shopee và thu thập chi tiết các listing đầu tiên.';
+  try{
+    const data=await api('/api/v1/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q,limit:20,collect_details:true})});
+    clearError(); const rows=data.results||[];
+    document.getElementById('dealNavCount').textContent=rows.length;
+    document.getElementById('viewSubtitle').textContent=`Tìm thấy ${rows.length} listing · lưu ${data.variants_persisted||0} biến thể vào DealHunter.`;
+    node.innerHTML=rows.length?rows.map(productCard).join(''):emptyState('🔎','Không thấy sản phẩm phù hợp','Thử từ khóa ngắn hơn hoặc tên model cụ thể hơn.');
+  }catch(e){node.innerHTML=emptyState('⚠️','Search chưa chạy được','DealHunter đã trả lỗi chi tiết ở phía trên.');showError(e)}finally{btn.disabled=false;btn.textContent='Tìm deal ngon'}
+}
+
+function quickSearch(q){document.getElementById('search').value=q;runSearch()}
+async function addWatch(variant_id){try{clearError();await api('/api/v1/watchlist',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:'local',variant_id,mode:'NORMAL',verify_account:false})});await loadWatchlist()}catch(e){showError(e)}}
+async function removeWatch(id){try{clearError();await api(`/api/v1/watchlist/${id}?user_id=local`,{method:'DELETE'});await loadWatchlist()}catch(e){showError(e)}}
+
+const viewMeta={opportunities:['Deal Radar','Những cơ hội tốt nhất mà hệ thống đang nhìn thấy.'],watchlist:['Watchlist','Những sản phẩm DealHunter đang theo dõi cho m.'],tools:['AI Tools','Các tool backend sẵn sàng cho Skill/Agent sử dụng.']};
+function showView(id,el,load=true){
+  clearError(); ['opportunities','watchlist','tools'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); if(el)el.classList.add('active');
+  document.getElementById('viewTitle').textContent=viewMeta[id][0];document.getElementById('viewSubtitle').textContent=viewMeta[id][1];
+  if(load&&id==='opportunities')loadOpportunities(); if(load&&id==='watchlist')loadWatchlist(); if(load&&id==='tools')loadTools();
+}
+
+document.getElementById('search').addEventListener('keydown',e=>{if(e.key==='Enter')runSearch()});
+Promise.allSettled([loadOpportunities(),loadWatchlist(),loadTools()]);
 </script>
 </body>
 </html>
