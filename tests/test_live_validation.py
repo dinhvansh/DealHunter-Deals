@@ -7,6 +7,8 @@ import pytest
 
 from dealhunter.providers.base import ListingDetail, MarketplaceProvider, SearchHit, VariantQuote
 from dealhunter.services.live_validation import (
+    CSV_FIELDS,
+    ValidationRow,
     collect_live_sample,
     evaluate_validation_csv,
     write_validation_csv,
@@ -58,7 +60,6 @@ def test_validation_csv_report_and_gate(tmp_path):
     path = tmp_path / "sample.csv"
     rows = []
     now = datetime(2026, 9, 9, tzinfo=timezone.utc)
-    from dealhunter.services.live_validation import ValidationRow
 
     for index in range(50):
         rows.append(
@@ -84,7 +85,6 @@ def test_validation_csv_report_and_gate(tmp_path):
 
     with path.open("r", encoding="utf-8-sig", newline="") as handle:
         data = list(csv.DictReader(handle))
-        fieldnames = handle.seek(0) or list(data[0].keys())
 
     for index, row in enumerate(data):
         row["manual_price"] = "2000000" if index < 48 else "2100000"
@@ -105,7 +105,6 @@ def test_validation_csv_report_and_gate(tmp_path):
 
 def test_validation_report_accepts_explicit_status(tmp_path):
     path = tmp_path / "manual.csv"
-    from dealhunter.services.live_validation import CSV_FIELDS
 
     with path.open("w", encoding="utf-8-sig", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=CSV_FIELDS)
