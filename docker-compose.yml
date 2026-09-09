@@ -1,0 +1,32 @@
+services:
+  api:
+    build: .
+    env_file: .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: dealhunter
+      POSTGRES_USER: dealhunter
+      POSTGRES_PASSWORD: dealhunter
+    ports:
+      - "5432:5432"
+    volumes:
+      - dealhunter_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dealhunter -d dealhunter"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+volumes:
+  dealhunter_pg:
