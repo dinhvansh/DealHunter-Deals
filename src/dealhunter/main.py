@@ -76,7 +76,7 @@ async def setup_and_auth_gate(request: Request, call_next):
                     content={"detail": {"code": "authentication_required", "message": "Log in first."}},
                 )
             request.state.user = user
-    except SQLAlchemyError as exc:
+    except SQLAlchemyError:
         logger.exception("auth_gate_database_error path=%s", path)
         if _wants_html(request):
             return HTMLResponse(
@@ -147,4 +147,7 @@ def settings_page():
 
 @app.get("/", response_class=HTMLResponse)
 def home():
-    return _load_html("index.html")
+    html = _load_html("index.html")
+    marker = '<span class="top-pill">AI Deal Radar</span>'
+    settings_link = marker + '<a class="top-pill" href="/settings">⚙ Settings</a>'
+    return html.replace(marker, settings_link, 1)
