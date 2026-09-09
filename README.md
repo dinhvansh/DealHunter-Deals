@@ -42,7 +42,7 @@ Price History   Promotion Rules   Link/Analytics
             |
           Alerts
 
-PostgreSQL + Redis + Workers + Playwright/Browserless
+PostgreSQL + Redis + Workers + Google Chrome Stable (Playwright-controlled)
 ```
 
 ## Documentation
@@ -65,11 +65,25 @@ PostgreSQL + Redis + Workers + Playwright/Browserless
 - Backend: Python + FastAPI
 - Database: PostgreSQL
 - Queue/cache: Redis
-- Browser automation: Playwright; Browserless optional
+- Browser automation: **Google Chrome Stable**, controlled by Playwright with a persistent profile
 - Scheduler/workers: Celery/RQ/custom worker; final choice after collector POC
 - Notifications: Telegram first
 - UI: responsive web/PWA
 - AI layer: tool/skill calling DealHunter API
+
+## Chrome runtime
+
+Browser-backed collection uses branded **Google Chrome Stable**, not Playwright's bundled Chromium. The default Docker deployment persists the Chrome profile at `/data/chrome-profile` so cookies/session state survive container restarts.
+
+The supplied Chrome container currently targets **amd64/x86_64 Linux VPS hosts**. If the VPS is ARM64, use a different browser deployment strategy instead of this Dockerfile.
+
+Environment defaults:
+
+```env
+DEALHUNTER_SHOPEE_TRANSPORT=chrome
+DEALHUNTER_CHROME_PROFILE_DIR=/data/chrome-profile
+DEALHUNTER_CHROME_HEADLESS=true
+```
 
 ## First implementation target
 
@@ -81,7 +95,7 @@ The first milestone is successful only when SKU/variation prices are consistentl
 
 ```bash
 pip install -e '.[dev]'
-dealhunter live-sample "ssd 2tb" --listings 10
+dealhunter live-sample "ssd 2tb" --listings 10 --transport chrome
 ```
 
 Review the generated CSV against the Shopee UI, fill `manual_price` / `manual_variant_name` (or `manual_status`), then calculate accuracy:
