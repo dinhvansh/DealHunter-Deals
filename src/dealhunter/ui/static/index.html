@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DealHunter</title>
+  <style>
+    :root{font-family:Inter,system-ui,-apple-system,sans-serif;color:#171717;background:#f6f7f9}*{box-sizing:border-box}body{margin:0}header{padding:18px 24px;background:#111;color:white;display:flex;justify-content:space-between;align-items:center}.wrap{max-width:1180px;margin:auto;padding:24px}.hero{display:grid;gap:12px;margin-bottom:18px}.searchbar{display:flex;gap:8px}.search{flex:1;padding:14px;border:1px solid #d7d7d7;border-radius:12px;font-size:16px}button{border:0;border-radius:10px;padding:11px 14px;font-weight:700;cursor:pointer}.primary{background:#111;color:white}.tabs{display:flex;gap:8px;flex-wrap:wrap}.tab{background:white;border:1px solid #ddd}.tab.active{background:#111;color:white}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}.card{background:white;border:1px solid #e8e8e8;border-radius:16px;padding:17px;box-shadow:0 5px 18px rgba(0,0,0,.04)}.muted{color:#707070}.score{font-size:32px;font-weight:850}.row{display:flex;justify-content:space-between;gap:12px;align-items:center}.badge{font-size:12px;padding:5px 8px;border:1px solid #ddd;border-radius:999px}.empty{padding:28px;text-align:center;background:white;border:1px dashed #ccc;border-radius:14px}.price{font-size:21px;font-weight:800}.hidden{display:none}.error{padding:12px;border:1px solid #d0d0d0;background:white;border-radius:10px;margin-bottom:12px}
+  </style>
+</head>
+<body>
+<header><b>DealHunter</b><span>AI Deal Radar</span></header>
+<main class="wrap">
+  <section class="hero">
+    <div class="searchbar">
+      <input id="search" class="search" placeholder="Ví dụ: SSD NVMe 2TB PCIe 4.0 dưới 2 triệu" />
+      <button class="primary" onclick="runSearch()">Tìm deal</button>
+    </div>
+    <div class="tabs">
+      <button class="tab active" data-view="opportunities" onclick="showView('opportunities',this)">⚡ Opportunities</button>
+      <button class="tab" data-view="watchlist" onclick="showView('watchlist',this)">❤️ Watchlist</button>
+      <button class="tab" data-view="tools" onclick="showView('tools',this)">🤖 AI Tools</button>
+    </div>
+  </section>
+  <div id="error"></div>
+  <section id="opportunities" class="grid"></section>
+  <section id="watchlist" class="grid hidden"></section>
+  <section id="tools" class="grid hidden"></section>
+</main>
+<script>
+const money = n => n == null ? '—' : Number(n).toLocaleString('vi-VN')+'đ';
+const api = async (url, options={}) => { const r=await fetch(url, options); if(!r.ok) throw new Error(await r.text()); return r.json(); };
+const error = e => document.getElementById('error').innerHTML=`<div class="error">${String(e)}</div>`;
+function dealCard(d){return `<article class="card"><div class="row"><span class="badge">Opportunity ${d.opportunity_score}</span><span class="muted">${new Date(d.computed_at).toLocaleString()}</span></div><h3>Variant ${d.variant_id.slice(0,8)}…</h3><div class="row"><div><div class="score">${d.deal_score}</div><div class="muted">Deal Score</div></div><div><b>Confidence ${d.confidence_score}%</b><br><span class="muted">Share ${d.share_score}</span></div></div><p class="muted">${Object.entries(d.components||{}).map(([k,v])=>`${k}: ${v}`).join(' · ')}</p><button onclick="addWatch('${d.variant_id}')">Theo dõi</button></article>`}
+async function loadOpportunities(){try{const data=await api('/api/v1/opportunities?limit=30&min_opportunity=0');document.getElementById('opportunities').innerHTML=data.length?data.map(dealCard).join(''):'<div class="empty">Chưa có Deal Score. Thu thập dữ liệu và chạy scoring để bắt đầu.</div>'}catch(e){error(e)}}
+async function loadWatchlist(){try{const data=await api('/api/v1/watchlist?user_id=local');document.getElementById('watchlist').innerHTML=data.length?data.map(w=>`<article class="card"><div class="row"><b>${w.mode} Watch</b><span class="badge">${w.enabled?'ON':'OFF'}</span></div><p>Variant ${w.variant_id}</p><p class="muted">Target: ${money(w.target_price)} · Deal ≥ ${w.min_deal_score??'—'}</p><button onclick="removeWatch('${w.id}')">Bỏ theo dõi</button></article>`).join(''):'<div class="empty">Watchlist đang trống.</div>'}catch(e){error(e)}}
+async function loadTools(){try{const data=await api('/api/v1/ai/tools');document.getElementById('tools').innerHTML=data.tools.map(t=>`<article class="card"><b>${t.name}</b><p class="muted">${t.description}</p></article>`).join('')}catch(e){error(e)}}
+async function runSearch(){const q=document.getElementById('search').value.trim();if(!q)return;try{const data=await api('/api/v1/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q,limit:20,collect_details:true})});document.getElementById('opportunities').innerHTML=data.results.map(r=>`<article class="card"><span class="badge">Shopee</span><h3>${r.title}</h3><div class="price">${money(r.displayed_price)}</div><p class="muted">${r.item_id} · shop ${r.shop_id}</p><a href="${r.url}" target="_blank" rel="noreferrer">Mở sản phẩm</a></article>`).join('')||'<div class="empty">Không tìm thấy kết quả.</div>';showView('opportunities',document.querySelector('[data-view=opportunities]'))}catch(e){error(e)}}
+async function addWatch(variant_id){try{await api('/api/v1/watchlist',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:'local',variant_id,mode:'NORMAL',verify_account:false})});await loadWatchlist()}catch(e){error(e)}}
+async function removeWatch(id){try{await api(`/api/v1/watchlist/${id}?user_id=local`,{method:'DELETE'});await loadWatchlist()}catch(e){error(e)}}
+function showView(id,el){['opportunities','watchlist','tools'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');if(id==='watchlist')loadWatchlist();if(id==='tools')loadTools()}
+loadOpportunities();
+</script>
+</body>
+</html>

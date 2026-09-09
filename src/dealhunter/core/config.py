@@ -13,11 +13,21 @@ class Settings(BaseSettings):
     env: str = "local"
     database_url: str = "sqlite:///./dealhunter.db"
     redis_url: str = "redis://localhost:6379/0"
+
     shopee_base_url: str = "https://shopee.vn"
     shopee_transport: str = "http"
     shopee_timeout_seconds: float = 30.0
     shopee_max_concurrency: int = 3
     raw_evidence_retention: bool = False
+
+    telegram_bot_token: str | None = None
+    telegram_chat_id: str | None = None
+
+    affiliate_provider: str = "generic"
+    affiliate_key: str = "aff_id"
+    affiliate_value: str = "demo"
+
+    account_verification_enabled: bool = False
 
 
 @lru_cache

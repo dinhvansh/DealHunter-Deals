@@ -6,6 +6,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      DEALHUNTER_DATABASE_URL: sqlite:///./ci.db
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -14,4 +16,5 @@ jobs:
       - run: pip install -e '.[dev]'
       - run: ruff check src tests
       - run: python -m compileall -q src tests
+      - run: alembic upgrade head
       - run: pytest -q
