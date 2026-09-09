@@ -10,6 +10,7 @@ from .extended_models import (
     WatchlistRecord,
 )
 from .models import Listing, PriceSnapshot, ProductVariant, Shop
+from .security_models import AdminUser, AuthSession, IntegrationConfig, MarketplaceAccount, SetupState
 
 __all__ = [
     "Base",
@@ -25,4 +26,9 @@ __all__ = [
     "AffiliateLinkRecord",
     "AffiliateClick",
     "AlertRecord",
+    "SetupState",
+    "AdminUser",
+    "AuthSession",
+    "IntegrationConfig",
+    "MarketplaceAccount",
 ]
