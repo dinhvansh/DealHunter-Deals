@@ -23,6 +23,12 @@ class Settings(BaseSettings):
     chrome_profile_dir: str = "./data/chrome-profile"
     chrome_headless: bool = True
     chrome_executable_path: str | None = None
+    browser_login_public_url: str | None = None
+
+    secret_key: str | None = None
+    secret_key_file: str = "./data/master.key"
+    session_days: int = 30
+    session_cookie_secure: bool = False
 
     telegram_bot_token: str | None = None
     telegram_chat_id: str | None = None
