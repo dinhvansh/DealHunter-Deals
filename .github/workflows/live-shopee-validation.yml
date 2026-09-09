@@ -1,0 +1,49 @@
+name: Live Shopee Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      query:
+        description: Shopee search query
+        required: true
+        default: ssd 2tb
+      listings:
+        description: Number of listings to inspect
+        required: true
+        default: "10"
+      transport:
+        description: Collector transport
+        required: true
+        default: http
+        type: choice
+        options:
+          - http
+          - playwright
+
+jobs:
+  sample:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - name: Install Chromium for Playwright
+        if: ${{ inputs.transport == 'playwright' }}
+        run: playwright install --with-deps chromium
+      - name: Collect live sample
+        run: >-
+          dealhunter live-sample "${{ inputs.query }}"
+          --listings "${{ inputs.listings }}"
+          --transport "${{ inputs.transport }}"
+          --output validation/live-shopee.csv
+      - name: Upload validation CSV
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shopee-live-validation
+          path: validation/
+          if-no-files-found: warn
+          retention-days: 7
