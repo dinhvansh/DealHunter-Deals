@@ -26,13 +26,20 @@ def build_provider(db: Session | None = None) -> ShopeeProvider:
     base_url = settings.shopee_base_url
     transport_mode = settings.shopee_transport
     profile_dir = settings.chrome_profile_dir
-    if db is not None:
+    owned_db = None
+    try:
+        if db is None:
+            owned_db = SessionLocal()
+            db = owned_db
         account = get_marketplace_account(db, "shopee")
         if account is not None:
             meta = account.metadata_json or {}
             base_url = str(meta.get("base_url") or base_url)
             transport_mode = str(meta.get("transport") or transport_mode)
             profile_dir = account.profile_dir or profile_dir
+    finally:
+        if owned_db is not None:
+            owned_db.close()
     return ShopeeProvider(
         base_url=base_url,
         transport_mode=transport_mode,
