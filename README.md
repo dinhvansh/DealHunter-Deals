@@ -52,6 +52,7 @@ PostgreSQL + Redis + Workers + Playwright/Browserless
 - [API Contract](docs/API.md)
 - [Deal Scoring](docs/DEAL_SCORING.md)
 - [Collector Strategy](docs/COLLECTOR_STRATEGY.md)
+- [Live Shopee Validation](docs/LIVE_VALIDATION.md)
 - [UI / PWA Specification](docs/UI_SPEC.md)
 - [AI Skill / Agent Contract](docs/AI_SKILL.md)
 - [Account Verification](docs/ACCOUNT_VERIFICATION.md)
@@ -75,3 +76,18 @@ PostgreSQL + Redis + Workers + Playwright/Browserless
 **Shopee keyword or URL → item → shop → variants → exact price per variant → PostgreSQL.**
 
 The first milestone is successful only when SKU/variation prices are consistently correct across at least 50–100 tracked variants.
+
+## Run the Phase 1 live validation gate
+
+```bash
+pip install -e '.[dev]'
+dealhunter live-sample "ssd 2tb" --listings 10
+```
+
+Review the generated CSV against the Shopee UI, fill `manual_price` / `manual_variant_name` (or `manual_status`), then calculate accuracy:
+
+```bash
+dealhunter live-report validation/<file>.csv
+```
+
+Release gate: at least **50 manually validated variants** with **>=95% accuracy**. See [Live Shopee Validation](docs/LIVE_VALIDATION.md) for the full runbook.
