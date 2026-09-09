@@ -17,8 +17,15 @@ class CollectorService:
         self,
         query: str,
         limit: int = 20,
-        detail_limit: int = 10,
+        detail_limit: int | bool = 10,
     ) -> tuple[list[SearchHit], int]:
+        # Backward compatibility for the public /search route, which historically passed
+        # collect_details as a boolean into this integer slot. Treat True as the normal
+        # detail batch size instead of Python's int(True) == 1.
+        if isinstance(detail_limit, bool):
+            detail_limit = 10 if detail_limit else 0
+        detail_limit = max(0, int(detail_limit))
+
         hits = await self.provider.search_products(query, limit=limit)
         persisted = 0
         failures = 0
