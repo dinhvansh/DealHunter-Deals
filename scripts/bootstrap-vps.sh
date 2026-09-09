@@ -29,6 +29,8 @@ systemctl enable --now docker
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
+SERVER_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
+SERVER_IP="${SERVER_IP:-SERVER_IP}"
 
 if [[ ! -f .env ]]; then
   cp .env.example .env
@@ -44,6 +46,10 @@ if grep -q '^DEALHUNTER_VNC_PASSWORD=change-me-now$' .env; then
   sed -i "s/^DEALHUNTER_VNC_PASSWORD=.*/DEALHUNTER_VNC_PASSWORD=${VNC_PASS}/" .env
 fi
 
+if grep -q '^DEALHUNTER_BROWSER_LOGIN_PUBLIC_URL=http://localhost:' .env; then
+  sed -i "s|^DEALHUNTER_BROWSER_LOGIN_PUBLIC_URL=.*|DEALHUNTER_BROWSER_LOGIN_PUBLIC_URL=http://${SERVER_IP}:6080/vnc.html?autoconnect=true|" .env
+fi
+
 mkdir -p validation
 
 docker compose up -d --build postgres redis api
@@ -56,9 +62,6 @@ for _ in $(seq 1 30); do
   sleep 2
 done
 curl -fsS http://127.0.0.1:8000/health >/dev/null
-
-SERVER_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
-SERVER_IP="${SERVER_IP:-SERVER_IP}"
 
 echo
 echo "DealHunter is healthy."
